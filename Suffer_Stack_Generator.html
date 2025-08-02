@@ -1,0 +1,149 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Suffer Stack Generator</title>
+  <style>
+    body {
+      background-color: #111;
+      color: #f55;
+      font-family: monospace;
+      text-align: center;
+      padding: 2rem;
+    }
+    button {
+      background-color: #222;
+      color: #fff;
+      padding: 1rem 2rem;
+      font-size: 1rem;
+      border: 2px solid #f55;
+      cursor: pointer;
+      margin-top: 1rem;
+    }
+    .result {
+      margin-top: 2rem;
+      font-size: 1rem;
+      white-space: pre-wrap;
+      text-align: left;
+      max-width: 600px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+  </style>
+</head>
+<body>
+  <h1>💀 Suffer Stack Generator 💀</h1>
+  <p><em>Your hell for today has been generated.</em></p>
+  <button onclick="generate()">Generate Today's Stack</button>
+  <div class="result" id="output"></div>
+
+  <script>
+    const fullCardio = [
+      "60-minute Zone 2 Ride",
+      "60-minute Zone 2 Run",
+      "60-minute Ruck (20–35 lbs)",
+      "60-minute Elliptical"
+    ];
+
+    const shortCardio = [
+      "30-minute Stairmaster",
+      "30-minute Zone 2 Ride",
+      "30-minute Zone 2 Run",
+      "30-minute Incline Walk 12/3/30",
+      "30-minute Elliptical",
+      "30-minute Sled Pushes/Pulls",
+      "30-minute Weighted Vest Walk",
+      "30-minute Rope Machine Intervals",
+      "30-minute Ladder Climber Intervals"
+    ];
+
+    const muscleGroups = ["chest", "back", "shoulders", "biceps", "triceps", "quads", "hamstrings", "glutes"];
+    let weeklyTracker = Object.fromEntries(muscleGroups.map(m => [m, 0]));
+    let lastLiftTargets = [];
+
+    function getToday() {
+      return new Date().getDay(); // 0 = Sunday
+    }
+
+    function chooseCardio1() {
+      if (Math.random() < 0.5) return [randomItem(fullCardio)];
+      let pair;
+      do {
+        pair = [randomItem(shortCardio), randomItem(shortCardio)];
+      } while (pair[0] === pair[1]);
+      return pair;
+    }
+
+    function chooseCardio2(day) {
+      if (day === 1 || day === 4) return "Spin Class (45–60 mins)";
+      const pool = fullCardio.filter(x => x !== "60-minute Zone 2 Ride");
+      return randomItem(pool);
+    }
+
+    function chooseLiftFormat() {
+      return randomItem(["Straight Sets", "Superset"]);
+    }
+
+    function chooseLiftTargets() {
+      const eligible = muscleGroups.filter(m => !lastLiftTargets.includes(m));
+      eligible.sort((a, b) => weeklyTracker[a] - weeklyTracker[b]);
+      const num = eligible.length >= 3 ? 3 : 2;
+      const selected = eligible.slice(0, num);
+      selected.forEach(m => weeklyTracker[m]++);
+      lastLiftTargets = [...selected];
+      return selected;
+    }
+
+    function generateLongRun() {
+      const miles = Math.floor(Math.random() * (14 - 8 + 1)) + 8;
+      return `🏃 Sunday Long Run: ${miles} miles
+No pacing cue. Just get it done.`;
+    }
+
+    function generate() {
+      const day = getToday();
+      let output = "";
+
+      if (day === 0) {
+        output += generateLongRun();
+      } else {
+        const cardio1 = chooseCardio1();
+        const cardio2 = chooseCardio2(day);
+        const liftFormat = chooseLiftFormat();
+        const liftTargets = chooseLiftTargets();
+
+        output += `🏃 Cardio 1:
+- ${cardio1.join("
+- ")}
+
+`;
+        output += `🚴 Cardio 2:
+- ${cardio2}
+
+`;
+        output += `🏋️ Lift Format: ${liftFormat}
+
+`;
+        output += `💪 Muscle Groups to Target:
+- ${liftTargets.join("
+- ")}
+
+`;
+        output += `📊 Weekly Muscle Hits:
+`;
+        for (let m of muscleGroups) {
+          output += `${m.charAt(0).toUpperCase() + m.slice(1)}: ${"🔥".repeat(weeklyTracker[m]) || "❄️"}
+`;
+        }
+      }
+
+      document.getElementById("output").innerText = output;
+    }
+
+    function randomItem(arr) {
+      return arr[Math.floor(Math.random() * arr.length)];
+    }
+  </script>
+</body>
+</html>
